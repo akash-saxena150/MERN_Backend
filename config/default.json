@@ -1,0 +1,3 @@
+{
+  "firestoreConfig": "./mern-db-config.json"
+}
