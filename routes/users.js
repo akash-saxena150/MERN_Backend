@@ -2,6 +2,8 @@ const express = require("express");
 const Router = express.Router();
 const { check, validationResult } = require("express-validator");
 const db = require("../config/db");
+const bcrypt = require("bcryptjs");
+const generator = require("generate-password");
 //@route get api/users
 //@desc Fetch all users
 //@access Private admin - all access, User - restricted access
@@ -48,11 +50,21 @@ Router.post(
         res.status(400).send("User already exists");
       }
       //Generate a password
-
+      const password = generator.generate({
+        length: 10,
+        numbers: true
+      });
+      let user = { fName, lName, email, win_id, role_id };
       //Encrypt the password
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
       //Upload on the server
+      const uploadUser = await db
+        .collection("users")
+        .doc(win_id)
+        .set(user);
       //send the response - user email, user pass
-      res.send("Users post route loaded");
+      res.status(200).json({ data: { ...user, password } });
     } catch (err) {
       res.status(500).send("Server error");
     }

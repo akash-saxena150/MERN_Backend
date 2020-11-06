@@ -1,3 +1,4 @@
 {
-  "firestoreConfig": "./mern-db-config.json"
+  "firestoreConfig": "./mern-db-config.json",
+  "jwtToken": "mysecretkey"
 }
