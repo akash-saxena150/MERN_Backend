@@ -1,6 +1,7 @@
 const express = require("express");
 const Router = express.Router();
 const { check, validationResult } = require("express-validator");
+const db = require("../config/db");
 //@route get api/users
 //@desc Fetch all users
 //@access Private admin - all access, User - restricted access
@@ -27,13 +28,30 @@ Router.post(
     check("email", "Please enter a valid email").isEmail()
   ],
   async (req, res) => {
-    console.log("Req body", req.body);
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({ errors: errors.array() });
       }
+      //Check if the user exists
+      const { fName, lName, email, win_id, role_id } = req.body;
+      console.log("Req body", fName, lName, email, win_id, role_id);
+      const dbRefUser = db.collection("users");
+      const userRef = dbRefUser.where("win_id", "==", win_id).get();
+      const userEmailRef = dbRefUser.where("email", "==", email).get();
+      const [userRefSnapshot, userEmailRefSnapshot] = await Promise.all([
+        userRef,
+        userEmailRef
+      ]);
+      console.log(userRefSnapshot.empty, userEmailRefSnapshot.empty);
+      if (!(userRefSnapshot.empty && userEmailRefSnapshot.empty)) {
+        res.status(400).send("User already exists");
+      }
+      //Generate a password
 
+      //Encrypt the password
+      //Upload on the server
+      //send the response - user email, user pass
       res.send("Users post route loaded");
     } catch (err) {
       res.status(500).send("Server error");
