@@ -12,8 +12,14 @@ const db = require("../config/db");
 
 router.get("/", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-pass");
-    res.json(user);
+    console.log("user id", req.user);
+    const dbRefUser = db.collection("users");
+    const userRef = await dbRefUser.where("win_id", "==", req.user.id).get();
+    let user = {};
+    userRef.forEach(doc => {
+      user = doc.data();
+    });
+    res.json({ ...user, password: null });
   } catch (err) {
     res.status(500).send("Server error");
   }
@@ -68,7 +74,8 @@ router.post(
       // res.send("User route");
       const payload = {
         user: {
-          id: user.win_id
+          id: user.win_id,
+          isAdmin: user.is_admin
         }
       };
       jwt.sign(
