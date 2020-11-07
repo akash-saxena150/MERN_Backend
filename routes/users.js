@@ -9,8 +9,29 @@ const auth = require("../middleware/auth");
 //@desc Fetch all users
 //@access Private admin - all access, User - restricted access
 
-Router.get("/", (req, res) => {
-  res.send("Users route loaded");
+Router.get("/", auth, async (req, res) => {
+  try {
+    const dbRefUser = db.collection("users");
+    const usersRef = await dbRefUser.get();
+    let usersArr = [];
+    usersRef.forEach(user => {
+      let data = {};
+      let currUserData = user.data();
+      if (req.user.isAdmin) {
+        data = { ...currUserData, password: null };
+      } else {
+        data = {
+          fName: currUserData.fName,
+          lName: currUserData.lName,
+          win_id: currUserData.win_id
+        };
+      }
+      usersArr.push(data);
+    });
+    res.status(200).json({ userData: usersArr });
+  } catch (err) {
+    res.status(500).send("Internal server error");
+  }
 });
 
 //@route post api/users
@@ -39,7 +60,7 @@ Router.post(
         res.status(400).json({ errors: errors.array() });
       }
       //Check if the user exists
-      const { fName, lName, email, win_id, role_id } = req.body;
+      const { fName, lName, email, win_id, role_id, is_admin } = req.body;
       const dbRefUser = db.collection("users");
       const userRef = dbRefUser.where("win_id", "==", win_id).get();
       const userEmailRef = dbRefUser.where("email", "==", email).get();
@@ -55,7 +76,16 @@ Router.post(
         length: 10,
         numbers: true
       });
-      let user = { fName, lName, email, win_id, role_id };
+      let user = {
+        fName,
+        lName,
+        email,
+        win_id,
+        role_id,
+        is_admin,
+        created_date: new Date(),
+        created_by: req.user.id
+      };
       //Encrypt the password
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
