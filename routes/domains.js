@@ -7,8 +7,20 @@ const { getCollection, getCreatedData } = require("../services");
 //@desc Show all domains
 //@access Private admin - full access, user - permission based access
 
-Router.get("/", (req, res) => {
-  res.send("Domains route loaded");
+Router.get("/", auth, async (req, res) => {
+  try {
+    if (req.user.isAdmin) {
+      const domainsRef = await getCollection("domains").get();
+      let domainsData = [];
+      domainsRef.forEach(domain => {
+        domainsData.push(domain.data());
+      });
+      return res.status(200).json({ domainsData });
+    }
+    res.status(200).send("Will share your domains in a while");
+  } catch (err) {
+    res.status(400).send("Server Error");
+  }
 });
 
 //@route post api/domains
