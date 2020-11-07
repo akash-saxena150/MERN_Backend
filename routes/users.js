@@ -5,6 +5,7 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const generator = require("generate-password");
 const auth = require("../middleware/auth");
+const notAdmin = require("../middleware/notAdmin");
 //@route get api/users
 //@desc Fetch all users
 //@access Private admin - all access, User - restricted access
@@ -41,6 +42,7 @@ Router.post(
   "/",
   [
     auth,
+    notAdmin,
     check("fName", "First name should not be empty")
       .not()
       .isEmpty(),
@@ -54,8 +56,6 @@ Router.post(
   ],
   async (req, res) => {
     try {
-      if (!req.user.isAdmin)
-        return res.status(400).send("Operation not allowed");
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });

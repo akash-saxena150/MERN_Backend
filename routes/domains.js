@@ -1,7 +1,8 @@
 const express = require("express");
 const Router = express.Router();
 const auth = require("../middleware/auth");
-const { notAdmin, getCollection, getCreatedData } = require("../services");
+const notAdmin = require("../middleware/notAdmin");
+const { getCollection, getCreatedData } = require("../services");
 //@route get api/domains
 //@desc Show all domains
 //@access Private admin - full access, user - permission based access
@@ -14,9 +15,9 @@ Router.get("/", (req, res) => {
 //@desc Create a domain
 //@access Private admin - full access, user - permission based access
 
-Router.post("/", auth, async (req, res) => {
+Router.post("/", auth, notAdmin, async (req, res) => {
   try {
-    notAdmin(req, res);
+    // notAdmin(req, res);
     const domainColRef = getCollection("domains");
 
     //Does domain exist?
