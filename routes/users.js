@@ -54,10 +54,11 @@ Router.post(
   ],
   async (req, res) => {
     try {
-      if (!req.user.isAdmin) res.status(400).send("Operation not allowed");
+      if (!req.user.isAdmin)
+        return res.status(400).send("Operation not allowed");
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ errors: errors.array() });
       }
       //Check if the user exists
       const { fName, lName, email, win_id, role_id, is_admin } = req.body;
@@ -69,7 +70,7 @@ Router.post(
         userEmailRef
       ]);
       if (!(userRefSnapshot.empty && userEmailRefSnapshot.empty)) {
-        res.status(400).send("User already exists");
+        return res.status(400).send("User already exists");
       }
       //Generate a password
       const password = generator.generate({
