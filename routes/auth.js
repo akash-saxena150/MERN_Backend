@@ -19,6 +19,7 @@ router.get("/", auth, async (req, res) => {
     userRef.forEach(doc => {
       user = doc.data();
     });
+    console.log("user", user);
     res.json({ ...user, password: null });
   } catch (err) {
     res.status(500).send("Server error");
@@ -75,7 +76,7 @@ router.post(
       const payload = {
         user: {
           id: user.win_id,
-          isAdmin: user.is_admin
+          isAdmin: user.isAdmin
         }
       };
       jwt.sign(
@@ -84,7 +85,7 @@ router.post(
         { expiresIn: 360000 },
         (err, token) => {
           if (err) throw err;
-          res.json({ token });
+          res.json({ token, isAdmin: payload.user.isAdmin });
         }
       );
     } catch (err) {

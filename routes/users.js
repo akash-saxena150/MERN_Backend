@@ -61,7 +61,15 @@ Router.post(
         return res.status(400).json({ errors: errors.array() });
       }
       //Check if the user exists
-      const { fName, lName, email, win_id, role_id, is_admin } = req.body;
+      const {
+        fName,
+        lName,
+        email,
+        win_id,
+        role_id,
+        isAdmin,
+        password
+      } = req.body;
       const dbRefUser = db.collection("users");
       const userRef = dbRefUser.where("win_id", "==", win_id).get();
       const userEmailRef = dbRefUser.where("email", "==", email).get();
@@ -69,11 +77,11 @@ Router.post(
         userRef,
         userEmailRef
       ]);
-      if (!(userRefSnapshot.empty && userEmailRefSnapshot.empty)) {
-        return res.status(400).send("User already exists");
-      }
+      // if (!(userRefSnapshot.empty && userEmailRefSnapshot.empty)) {
+      //   return res.status(401).send("User already exists");
+      // }
       //Generate a password
-      const password = generator.generate({
+      const generatedPass = generator.generate({
         length: 10,
         numbers: true
       });
@@ -83,14 +91,25 @@ Router.post(
         email,
         win_id,
         role_id,
-        is_admin,
+        isAdmin,
         created_date: new Date(),
         created_by: req.user.id
       };
       //Encrypt the password
       const salt = await bcrypt.genSalt(10);
-      user.password = await bcrypt.hash(password, salt);
+      user.password =
+        password && password.length > 0
+          ? password
+          : await bcrypt.hash(generatedPass, salt);
       //Upload on the server
+
+      //ABSOLUTELY NOT REQUIRED IN PROD
+      // let userIsAdmin = user.isAdmin || user.is_admin || false;
+      // user.is_admin = userIsAdmin;
+      // user.isAdmin = userIsAdmin;
+      console.log("User data to be passed ---->", user);
+      //NOT REQUIRED BLOCK ENDS
+
       const uploadUser = await db
         .collection("users")
         .doc(win_id)
@@ -98,6 +117,7 @@ Router.post(
       //send the response - user email, user pass
       res.status(200).json({ data: { ...user, password } });
     } catch (err) {
+      console.log("err", err);
       res.status(500).send("Server error");
     }
   }
