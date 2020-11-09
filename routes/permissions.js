@@ -78,9 +78,75 @@ Router.get("/:id", async (req, res) => {
 //@desc Show all permissions of logged in user
 //@access Private
 
-Router.get("/", (req, res) => {
-  console.log("req.params.id");
-  res.send("Worked!");
+Router.get("/", auth, async (req, res) => {
+  try {
+    const winId = req.user.id;
+    console.log("winId", winId);
+    const permissionRef = await getCollection("permissions")
+      .where("win_id", "==", winId)
+      .get();
+    let permissionData = [],
+      i = 0;
+    let permissions = {};
+    console.log("Raw promise", permissionRef);
+    permissionRef.forEach(data => {
+      console.log("Checking permissions", data.data());
+      permissions = { ...data.data().permissions };
+    });
+    console.log("Permissions", permissions);
+    for (let domain in permissions) {
+      permissionData.push({});
+      let domainDataRef = await getCollection("domains")
+        .doc(domain)
+        .get();
+      let currDomain = domainDataRef.data();
+      permissionData[i]["domain_name"] = currDomain.name;
+      permissionData[i]["domain_id"] = currDomain.domain_id;
+      permissionData[i]["modules"] = permissionData[i]["modules"] || [];
+      for (let j = 0; permissions[domain][j]; j++) {
+        permissionData[i]["modules"][j] = {};
+        let moduleDataRef = await getCollection("modules")
+          .doc(permissions[domain][j])
+          .get();
+        let currModule = moduleDataRef.data();
+        console.log("CurrModule", currModule);
+        permissionData[i]["modules"][j].module_name = currModule.name;
+        permissionData[i]["modules"][j].module_id = currModule.module_id;
+      }
+      i++;
+    }
+    // permissionRef.forEach(userPermission => {
+    //   let permissions = { ...userPermission.data().permissions };
+
+    //   // Object.keys(permissions).map(async (domain, i) => {
+    //   //   permissionData.push({});
+    //   //   let domainDataRef = await getCollection("domains")
+    //   //     .doc(domain)
+    //   //     .get();
+    //   //   let currDomain = domainDataRef.data();
+    //   //   permissionData[i]["domain_name"] = currDomain.name;
+    //   //   permissionData[i]["domain_id"] = currDomain.domain_id;
+    //   //   permissionData[i]["modules"] = permissionData[i]["modules"] || [];
+    //   //   permissions[domain].map(async (module, j) => {
+    //   //     let moduleDataRef = await getCollection("modules")
+    //   //       .doc(module)
+    //   //       .get();
+    //   //     let currModule = moduleDataRef.data();
+    //   //     permissionData[i]["modules"].push({
+    //   //       module_name: currModule.name,
+    //   //       module_id: currModule.module_id
+    //   //     });
+    //   //     console.log("permissionData[i]", permissionData[i]);
+    //   //   });
+    //   //   // console.log("permissionData[i]", permissionData[i]);
+    //   // });
+    // });
+    console.log("permissionData", permissionData);
+    res.status(200).json({ permissionData });
+  } catch (err) {
+    console.log("Error", err);
+    res.status(500).send("Internal server error");
+  }
 });
 
 //@route post api/permissions

@@ -18,6 +18,8 @@
   },
   "homepage": "https://github.com/akash-saxena150/MERN_Backend#readme",
   "dependencies": {
+    "@google-cloud/bigquery": "^5.4.0",
+    "@google-cloud/storage": "^5.4.0",
     "bcryptjs": "^2.4.3",
     "config": "^3.3.2",
     "express": "^4.17.1",
