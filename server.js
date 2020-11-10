@@ -1,29 +1,15 @@
 const express = require("express");
 const routeConfig = require("./routeConfig");
-const { BigQuery } = require("@google-cloud/bigquery");
 
-const connBigQ = {
-  keyFilename: "./config/mern-db-config.json",
-  projectId: "mern-lowes"
-};
+// async function listDatasets() {
+//   // Lists all datasets in current GCP project.
 
-const testBigQueryFn = async () => {
-  const bigQueryConnection = new BigQuery(connBigQ);
-  let query =
-    "select committer.tz_offset from `bigquery-public-data.github_repos.sample_commits` where committer.time_sec>=1380553254";
-  const queryOption = {
-    query,
-    location: "US"
-  };
-  try {
-    const [job] = await bigQueryConnection.createQueryJob(queryOption);
-    const [rows] = await job.getQueryResults();
-    console.log(rows);
-  } catch (err) {
-    console.log("err", err);
-  }
-};
-testBigQueryFn();
+//   // Lists all datasets in the specified project
+//   const [datasets] = await bigQueryConnection.getDatasets();
+//   console.log("Datasets:");
+//   datasets.forEach(dataset => console.log(dataset.id));
+// }
+// listDatasets();
 const app = express();
 
 app.use(express.json({ extended: false }));
